@@ -142,6 +142,7 @@ export function Editor({
                   <Slider
                     value={s.values[ai] ?? 0}
                     color={s.color}
+                    step={5}
                     onChange={(v) =>
                       dispatch({
                         type: "value",

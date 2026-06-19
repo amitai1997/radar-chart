@@ -72,7 +72,9 @@ export function normalizeSpec(spec: ChartSpec): ChartSpec {
     series: spec.series.map((s) => {
       const values = Array.from({ length: n }, (_, i) => {
         const v = s.values[i];
-        return clamp(typeof v === "number" && Number.isFinite(v) ? v : 50);
+        // Round AI scores to steps of 5: the estimates aren't precise enough
+        // to justify a finer scale, and "85 vs 90" reads as an honest claim.
+        return round5(clamp(typeof v === "number" && Number.isFinite(v) ? v : 50));
       });
       return { ...s, values };
     }),
@@ -81,4 +83,9 @@ export function normalizeSpec(spec: ChartSpec): ChartSpec {
 
 export function clamp(v: number, min = 0, max = 100): number {
   return Math.max(min, Math.min(max, v));
+}
+
+/** Round to the nearest multiple of 5 (matches the score granularity). */
+export function round5(v: number): number {
+  return Math.round(v / 5) * 5;
 }

@@ -54,18 +54,21 @@ export function Slider({
   color,
   min = 0,
   max = 100,
+  step = 1,
 }: {
   value: number;
   onChange: (v: number) => void;
   color?: string;
   min?: number;
   max?: number;
+  step?: number;
 }) {
   return (
     <input
       type="range"
       min={min}
       max={max}
+      step={step}
       value={value}
       onChange={(e) => onChange(Number(e.target.value))}
       style={color ? ({ accentColor: color } as React.CSSProperties) : undefined}
