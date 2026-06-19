@@ -29,9 +29,11 @@ export const ChartSpecSchema = z.object({
   subtitle: z.string().optional().describe("Optional supporting subtitle"),
   axes: z
     .array(AxisSchema)
-    .min(5)
-    .max(8)
-    .describe("The 5-8 axes (vertices) of the radar chart"),
+    .min(3)
+    .max(10)
+    .describe(
+      "The axes (vertices) of the radar chart — choose the number the topic naturally needs, from 3 to 10",
+    ),
   series: z
     .array(SeriesSchema)
     .min(1)
