@@ -16,7 +16,7 @@ import { loadCurrent, saveCurrent, useRecents } from "@/hooks/useLocalCharts";
 const INITIAL_STYLE: StyleState = {
   themeId: "midnight",
   paletteId: "vivid",
-  aspectId: "square",
+  aspectId: "portrait",
   background: "gradient",
   watermark: "@dataviz",
   watermarkOn: true,
@@ -152,6 +152,7 @@ export default function Home() {
               height={aspect.height}
               background={style.background}
               watermark={watermark}
+              caveat={model.caveat}
               paddingScale={style.paddingScale}
             />
           </div>

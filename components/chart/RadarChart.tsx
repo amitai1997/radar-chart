@@ -18,6 +18,7 @@ export type RadarChartProps = {
   height: number;
   background?: BackgroundStyle;
   watermark?: string; // empty/undefined => hidden
+  caveat?: string; // source / estimate disclaimer, rendered bottom-left
   fontFamily?: string;
   /** Extra outer margin as a fraction of the smaller dimension. */
   paddingScale?: number;
@@ -39,6 +40,7 @@ export const RadarChart = forwardRef<SVGSVGElement, RadarChartProps>(
       height: H,
       background = "solid",
       watermark,
+      caveat,
       fontFamily = "system-ui, -apple-system, 'Segoe UI', sans-serif",
       paddingScale = 0.06,
     },
@@ -77,7 +79,9 @@ export const RadarChart = forwardRef<SVGSVGElement, RadarChartProps>(
     const vertGutter = axisFont * 2;
 
     const bandH = H - bottomReserved - topReserved;
-    const radiusH = (W - 2 * m - 2 * sideGutter) / 2;
+    // hPad: outer margin and label clearance share the same space — take the max, not sum.
+    const hPad = Math.max(m, sideGutter);
+    const radiusH = (W - 2 * hPad) / 2;
     const radiusV = (bandH - 2 * vertGutter) / 2;
     const radius = Math.max(40, Math.min(radiusH, radiusV));
     const cx = W / 2;
@@ -207,6 +211,42 @@ export const RadarChart = forwardRef<SVGSVGElement, RadarChartProps>(
           </g>
         ))}
 
+        {/* Vertex value labels — only for 1–2 series (more would be noise).
+            Both series are offset inward (toward center) so they never collide
+            with the rim axis labels; series 1 sits a touch deeper than series 0
+            to keep near-coincident points legible. */}
+        {model.series.length <= 2 &&
+          model.series.map((s, si) => {
+            const valueFont = Math.round(min * 0.019);
+            const off = valueFont * (si === 0 ? 1.0 : 2.2) + dotR * 1.5;
+            return (
+              <g key={`v${si}`}>
+                {s.values.map((v, i) => {
+                  const angle = axisAngle(i, n);
+                  const p = valuePoint(cx, cy, radius, i, n, v);
+                  const x = p.x - Math.cos(angle) * off;
+                  const y = p.y - Math.sin(angle) * off + valueFont * 0.34;
+                  return (
+                    <text
+                      key={i}
+                      x={x}
+                      y={y}
+                      textAnchor="middle"
+                      fontSize={valueFont}
+                      fontWeight={700}
+                      fill={s.color}
+                      stroke={theme.background}
+                      strokeWidth={valueFont * 0.16}
+                      paintOrder="stroke"
+                    >
+                      {Math.round(v)}
+                    </text>
+                  );
+                })}
+              </g>
+            );
+          })}
+
         {/* Axis labels */}
         {model.axes.map((axis, i) => {
           const angle = axisAngle(i, n);
@@ -277,6 +317,26 @@ export const RadarChart = forwardRef<SVGSVGElement, RadarChartProps>(
             );
           }),
         )}
+
+        {/* Caveat / source footer (bottom-left), shrunk to fit beside the watermark */}
+        {caveat?.trim() &&
+          (() => {
+            const captionFont = Math.round(min * 0.018);
+            const wmRoom = watermark?.trim() ? W * 0.2 : 0;
+            const maxW = W - 2 * m - wmRoom;
+            const font = Math.round(fitFont(caveat, captionFont, maxW));
+            return (
+              <text
+                x={m}
+                y={H - m * 0.5}
+                textAnchor="start"
+                fontSize={font}
+                fill={theme.tickLabel}
+              >
+                {caveat}
+              </text>
+            );
+          })()}
 
         {/* Watermark */}
         {watermark?.trim() && (

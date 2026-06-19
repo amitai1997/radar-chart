@@ -42,3 +42,10 @@ next-env.d.ts
 
 # local test artifacts
 .playwright-mcp/
+
+# local verification screenshots
+*-check*.png
+layout-check*.png
+values-check*.png
+portrait-check*.png
+verify.png
