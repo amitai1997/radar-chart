@@ -71,12 +71,16 @@ export const RadarChart = forwardRef<SVGSVGElement, RadarChartProps>(
     const legendRowH = legendFont * 1.7;
     const bottomReserved = m + legend.rows.length * legendRowH + legendFont;
 
-    // Reserve room for labels extending past the rim: horizontal gutters sized
-    // to the longest label, vertical gutters for the top/bottom axis labels.
-    const labelW = (s: string) => s.length * axisFont * 0.55;
-    const maxLabelW = Math.max(0, ...model.axes.map((a) => labelW(a.label)));
-    const sideGutter = Math.min(maxLabelW + axisFont * 0.6, W * 0.26);
-    const vertGutter = axisFont * 2;
+    // Wrap long axis labels onto multiple lines so they never overflow the
+    // canvas width. Gutters are sized to the longest *wrapped line* and to the
+    // tallest label (line count), so the radius shrinks to leave exact room.
+    const maxLineW = W * 0.24;
+    const axisLines = model.axes.map((a) => wrapLabel(a.label, maxLineW, axisFont));
+    const lineW = (s: string) => s.length * axisFont * 0.55;
+    const longestLineW = Math.max(0, ...axisLines.flat().map(lineW));
+    const maxLines = Math.max(1, ...axisLines.map((l) => l.length));
+    const sideGutter = Math.min(longestLineW + axisFont * 0.6, W * 0.28);
+    const vertGutter = axisFont * (1 + maxLines);
 
     const bandH = H - bottomReserved - topReserved;
     // hPad: outer margin and label clearance share the same space — take the max, not sum.
@@ -247,22 +251,29 @@ export const RadarChart = forwardRef<SVGSVGElement, RadarChartProps>(
             );
           })}
 
-        {/* Axis labels */}
-        {model.axes.map((axis, i) => {
+        {/* Axis labels (multiline, vertically centered on the rim point) */}
+        {model.axes.map((_, i) => {
           const angle = axisAngle(i, n);
           const p = polar(cx, cy, radius, angle);
           const { anchor, dx, dy } = labelAnchor(angle);
+          const lines = axisLines[i];
+          const lineH = axisFont * 1.15;
+          const startY = p.y + dy - ((lines.length - 1) * lineH) / 2;
           return (
             <text
               key={i}
               x={p.x + dx}
-              y={p.y + dy}
+              y={startY}
               textAnchor={anchor}
               fontSize={axisFont}
               fontWeight={600}
               fill={theme.axisLabel}
             >
-              {axis.label}
+              {lines.map((ln, li) => (
+                <tspan key={li} x={p.x + dx} dy={li === 0 ? 0 : lineH}>
+                  {ln}
+                </tspan>
+              ))}
             </text>
           );
         })}
@@ -355,6 +366,29 @@ export const RadarChart = forwardRef<SVGSVGElement, RadarChartProps>(
     );
   },
 );
+
+/**
+ * Greedy word-wrap an axis label into lines that each fit `maxW` pixels.
+ * Width is approximated from character count (no DOM measurement); a single
+ * word longer than the budget is kept on its own line rather than broken.
+ */
+function wrapLabel(text: string, maxW: number, font: number): string[] {
+  const maxChars = Math.max(6, Math.floor(maxW / (font * 0.55)));
+  const words = text.trim().split(/\s+/);
+  const lines: string[] = [];
+  let cur = "";
+  for (const w of words) {
+    const candidate = cur ? `${cur} ${w}` : w;
+    if (candidate.length > maxChars && cur) {
+      lines.push(cur);
+      cur = w;
+    } else {
+      cur = candidate;
+    }
+  }
+  if (cur) lines.push(cur);
+  return lines.length ? lines : [text];
+}
 
 type LegendItem = { index: number; name: string; offsetX: number };
 type LegendRow = { items: LegendItem[]; startX: number; width: number };
