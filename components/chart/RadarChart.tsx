@@ -216,20 +216,27 @@ export const RadarChart = forwardRef<SVGSVGElement, RadarChartProps>(
         ))}
 
         {/* Vertex value labels — only for 1–2 series (more would be noise).
-            Both series are offset inward (toward center) so they never collide
-            with the rim axis labels; series 1 sits a touch deeper than series 0
-            to keep near-coincident points legible. */}
+            Labels are offset *perpendicular* to each spoke so they sit beside
+            the vertex rather than along it. Series 0 goes to the left of the
+            spoke (CCW), series 1 to the right (CW). This means:
+            - The two series labels are always side-by-side, never stacked.
+            - Labels never ride the spoke line toward the axis label text. */}
         {model.series.length <= 2 &&
           model.series.map((s, si) => {
             const valueFont = Math.round(min * 0.019);
-            const off = valueFont * (si === 0 ? 1.0 : 2.2) + dotR * 1.5;
+            const perpOff = valueFont * 1.1 + dotR;
+            const radialOff = dotR * 2.2;
             return (
               <g key={`v${si}`}>
                 {s.values.map((v, i) => {
                   const angle = axisAngle(i, n);
                   const p = valuePoint(cx, cy, radius, i, n, v);
-                  const x = p.x - Math.cos(angle) * off;
-                  const y = p.y - Math.sin(angle) * off + valueFont * 0.34;
+                  const cos = Math.cos(angle);
+                  const sin = Math.sin(angle);
+                  // Perpendicular to spoke: (-sin, cos) CCW / (sin, -cos) CW
+                  const side = si === 0 ? 1 : -1;
+                  const x = p.x - cos * radialOff + (-sin) * perpOff * side;
+                  const y = p.y - sin * radialOff + cos * perpOff * side + valueFont * 0.34;
                   return (
                     <text
                       key={i}
