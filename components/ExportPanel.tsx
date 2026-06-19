@@ -23,6 +23,7 @@ export type StyleState = {
   watermark: string;
   watermarkOn: boolean;
   paddingScale: number;
+  showValues: boolean;
 };
 
 export function ExportPanel({
@@ -110,6 +111,21 @@ export function ExportPanel({
           value={Math.round(style.paddingScale * 100)}
           onChange={(v) => onChange({ paddingScale: v / 100 })}
         />
+      </section>
+
+      <section>
+        <div className="flex items-center justify-between">
+          <SectionTitle>Value labels</SectionTitle>
+          <label className="flex cursor-pointer items-center gap-2 text-xs text-white/55">
+            <input
+              type="checkbox"
+              checked={style.showValues}
+              onChange={(e) => onChange({ showValues: e.target.checked })}
+              className="h-3.5 w-3.5 accent-white"
+            />
+            Show (1–2 series)
+          </label>
+        </div>
       </section>
 
       <section className="space-y-2">

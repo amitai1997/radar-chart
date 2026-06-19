@@ -19,6 +19,7 @@ export type RadarChartProps = {
   background?: BackgroundStyle;
   watermark?: string; // empty/undefined => hidden
   caveat?: string; // source / estimate disclaimer, rendered bottom-left
+  showValues?: boolean; // render numeric value labels at each vertex (1–2 series)
   fontFamily?: string;
   /** Extra outer margin as a fraction of the smaller dimension. */
   paddingScale?: number;
@@ -41,6 +42,7 @@ export const RadarChart = forwardRef<SVGSVGElement, RadarChartProps>(
       background = "solid",
       watermark,
       caveat,
+      showValues = true,
       fontFamily = "system-ui, -apple-system, 'Segoe UI', sans-serif",
       paddingScale = 0.06,
     },
@@ -221,7 +223,8 @@ export const RadarChart = forwardRef<SVGSVGElement, RadarChartProps>(
             spoke (CCW), series 1 to the right (CW). This means:
             - The two series labels are always side-by-side, never stacked.
             - Labels never ride the spoke line toward the axis label text. */}
-        {model.series.length <= 2 &&
+        {showValues &&
+          model.series.length <= 2 &&
           model.series.map((s, si) => {
             const valueFont = Math.round(min * 0.019);
             const perpOff = valueFont * 1.1 + dotR;

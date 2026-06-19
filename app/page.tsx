@@ -21,6 +21,7 @@ const INITIAL_STYLE: StyleState = {
   watermark: "@dataviz",
   watermarkOn: true,
   paddingScale: 0.06,
+  showValues: true,
 };
 
 export default function Home() {
@@ -153,6 +154,7 @@ export default function Home() {
               background={style.background}
               watermark={watermark}
               caveat={model.caveat}
+              showValues={style.showValues}
               paddingScale={style.paddingScale}
             />
           </div>
