@@ -81,8 +81,14 @@ export const RadarChart = forwardRef<SVGSVGElement, RadarChartProps>(
     const lineW = (s: string) => s.length * axisFont * 0.55;
     const longestLineW = Math.max(0, ...axisLines.flat().map(lineW));
     const maxLines = Math.max(1, ...axisLines.map((l) => l.length));
-    const sideGutter = Math.min(longestLineW + axisFont * 0.6, W * 0.28);
-    const vertGutter = axisFont * (1 + maxLines);
+    // Radial gap from the rim to the label, sized to clear the vertex dots
+    // (which sit on the rim when a value is 100).
+    const strokeW = Math.max(1.5, min * 0.0038);
+    const dotR = strokeW * 1.7;
+    const labelGap = axisFont * 0.8 + dotR * 2;
+    const lineH = axisFont * 1.15;
+    const sideGutter = Math.min(longestLineW + labelGap, W * 0.3);
+    const vertGutter = labelGap + lineH * maxLines;
 
     const bandH = H - bottomReserved - topReserved;
     // hPad: outer margin and label clearance share the same space — take the max, not sum.
@@ -94,8 +100,6 @@ export const RadarChart = forwardRef<SVGSVGElement, RadarChartProps>(
     const cy = topReserved + bandH / 2;
 
     const n = model.axes.length;
-    const strokeW = Math.max(1.5, min * 0.0038);
-    const dotR = strokeW * 1.7;
 
     const legendStartY = H - bottomReserved + legendFont * 0.4;
 
@@ -265,9 +269,8 @@ export const RadarChart = forwardRef<SVGSVGElement, RadarChartProps>(
         {model.axes.map((_, i) => {
           const angle = axisAngle(i, n);
           const p = polar(cx, cy, radius, angle);
-          const { anchor, dx, dy } = labelAnchor(angle);
+          const { anchor, dx, dy } = labelAnchor(angle, labelGap);
           const lines = axisLines[i];
-          const lineH = axisFont * 1.15;
           const startY = p.y + dy - ((lines.length - 1) * lineH) / 2;
           return (
             <text

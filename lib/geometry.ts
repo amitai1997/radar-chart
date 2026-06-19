@@ -72,7 +72,10 @@ export function gridRing(
  * Text anchor + a small outward offset for an axis label, chosen by which
  * quadrant the axis points into so labels never sit on top of the rim.
  */
-export function labelAnchor(angle: number): {
+export function labelAnchor(
+  angle: number,
+  gap = 14,
+): {
   anchor: "start" | "middle" | "end";
   dx: number;
   dy: number;
@@ -83,8 +86,8 @@ export function labelAnchor(angle: number): {
     Math.abs(cos) < 0.2 ? "middle" : cos > 0 ? "start" : "end";
   return {
     anchor,
-    dx: round(cos * 14),
-    dy: round(sin * 14) + 4, // +4 nudges for vertical text centering
+    dx: round(cos * gap),
+    dy: round(sin * gap) + 4, // +4 nudges for vertical text centering
   };
 }
 
